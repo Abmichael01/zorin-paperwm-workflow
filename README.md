@@ -139,6 +139,21 @@ gesture may still behave differently depending on session type and installed
 gesture extensions; the bundled PaperWM Touchégg profile sends PaperWM's
 workspace shortcuts on X11.
 
+### Known second-monitor limitation
+
+The current setup is most reliable with one monitor. When a second monitor is
+connected—especially when it is hot-plugged after login—PaperWM and GNOME can
+occasionally disagree about which workspace belongs to which monitor. A
+workspace may appear on the wrong display, both displays may seem to move
+together, or the focused-monitor numbering may become inconsistent until the
+GNOME session or PaperWM is reloaded.
+
+The companion extension improves direct numbered switching, but it does not
+fully replace GNOME's underlying global workspace model. Treat independent,
+Niri-style workspaces on multiple monitors as experimental for now. If
+per-monitor separation is essential, test the setup with your exact monitor
+layout before relying on it for daily work.
+
 ## Updating PaperWM
 
 The numbered-workspace extension imports PaperWM's internal `tiling.js`, so an
