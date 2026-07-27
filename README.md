@@ -25,6 +25,8 @@ management without migrating away from a familiar GNOME-based operating system.
 - PaperWM 50.0.1 (bundled from the upstream PaperWM project)
 - A companion GNOME extension for focused-monitor numbered workspaces
 - A Zorin-only `Super+Space` menu extension
+- An Android Emulator helper that can detach its side controls into a separate
+  PaperWM window
 - `zorin-desktop-profile`, which enables/disables conflicting extensions and
   shortcuts for each profile
 - Touchégg gesture profiles
@@ -65,8 +67,8 @@ cd zorin-paperwm-workflow
 ./install.sh
 ```
 
-If Touchégg is missing on Zorin, Ubuntu, or Debian, install the optional system
-dependency at the same time:
+To install Touchégg and the X11 utilities used by the Android Emulator helper
+on Zorin, Ubuntu, or Debian, run:
 
 ```bash
 ./install.sh --install-deps
@@ -154,6 +156,27 @@ Niri-style workspaces on multiple monitors as experimental for now. If
 per-monitor separation is essential, test the setup with your exact monitor
 layout before relying on it for daily work.
 
+## Android Emulator side controls
+
+The standalone Android Emulator exposes its narrow controls as a sticky,
+always-on-top utility window attached to the phone. PaperWM normally excludes
+that kind of window. After the emulator is open, launch **Tile Android Emulator
+Controls** from the application menu or run:
+
+```bash
+~/.local/bin/paperwm-android-emulator-toolbar
+```
+
+The helper targets only a visible Android `Emulator` utility window no wider
+than 100 pixels. It converts that toolbar to a normal window, removes its parent
+relationship, and reloads PaperWM so the phone and controls can be selected and
+reordered separately. Restarting the emulator restores Android's original
+attached-toolbar behavior.
+
+This is an X11-specific workaround tested with Android Emulator 36.6.11. It is
+experimental because a future emulator release may change its Qt window
+properties.
+
 ## Updating PaperWM
 
 The numbered-workspace extension imports PaperWM's internal `tiling.js`, so an
@@ -172,6 +195,8 @@ rm -rf \
   ~/.local/share/gnome-shell/extensions/zorin-menu-super-space@urkel.local
 rm -f \
   ~/.local/bin/zorin-desktop-profile \
+  ~/.local/bin/paperwm-android-emulator-toolbar \
+  ~/.local/share/applications/zorin-profile-android-emulator.desktop \
   ~/.local/share/applications/zorin-profile-normal.desktop \
   ~/.local/share/applications/zorin-profile-tiling.desktop
 ```

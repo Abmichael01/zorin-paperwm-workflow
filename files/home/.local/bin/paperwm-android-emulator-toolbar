@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PAPERWM_UUID='paperwm@paperwm.github.com'
+NUMBERED_UUID='paperwm-numbered-workspaces@urkel.local'
+converted=0
+
+for window_id in $(xdotool search --class Emulator 2>/dev/null || true); do
+    map_state=$(xwininfo -id "$window_id" 2>/dev/null | awk -F: '/Map State/{gsub(/^ +/, "", $2); print $2; exit}')
+    width=$(xwininfo -id "$window_id" 2>/dev/null | awk -F: '/Width/{gsub(/^ +/, "", $2); print $2; exit}')
+    window_type=$(xprop -id "$window_id" _NET_WM_WINDOW_TYPE 2>/dev/null || true)
+    window_name=$(xprop -id "$window_id" _NET_WM_NAME 2>/dev/null || true)
+
+    if [[ "$map_state" != 'IsViewable' ]] ||
+       [[ ! "${width:-}" =~ ^[0-9]+$ ]] ||
+       (( width > 100 )) ||
+       [[ "$window_type" != *'_NET_WM_WINDOW_TYPE_UTILITY'* ]] ||
+       [[ "$window_name" != *'"Emulator"'* ]]; then
+        continue
+    fi
+
+    # Qt may recreate WM_TRANSIENT_FOR when the state changes, so remove the
+    # state first and the parent relationship last.
+    xprop -id "$window_id" \
+        -f _NET_WM_WINDOW_TYPE 32a \
+        -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_NORMAL >/dev/null
+    xprop -id "$window_id" -remove _NET_WM_STATE >/dev/null
+    sleep 1
+    xprop -id "$window_id" -remove WM_TRANSIENT_FOR >/dev/null
+
+    converted=$((converted + 1))
+done
+
+if (( converted == 0 )); then
+    notify-send 'PaperWM Android Emulator' \
+        'No visible Android Emulator side toolbar was found.'
+    exit 1
+fi
+
+if gnome-extensions info "$PAPERWM_UUID" 2>/dev/null | grep -Fq 'State: ACTIVE'; then
+    gnome-extensions disable "$NUMBERED_UUID" >/dev/null 2>&1 || true
+    gnome-extensions disable "$PAPERWM_UUID" >/dev/null
+    sleep 1
+    gnome-extensions enable "$PAPERWM_UUID" >/dev/null
+    sleep 2
+    gnome-extensions enable "$NUMBERED_UUID" >/dev/null 2>&1 || true
+fi
+
+notify-send 'PaperWM Android Emulator' \
+    "Converted $converted emulator toolbar window(s) into independent PaperWM windows."

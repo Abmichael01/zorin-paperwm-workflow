@@ -14,7 +14,7 @@ if [[ "${1:-}" == "--install-deps" ]]; then
         exit 1
     fi
     sudo apt-get update
-    sudo apt-get install -y libglib2.0-bin touchegg
+    sudo apt-get install -y libglib2.0-bin touchegg x11-utils xdotool
 fi
 
 if ! command -v gnome-extensions >/dev/null 2>&1; then
@@ -42,11 +42,13 @@ cp -a "$SOURCE_HOME/.local/share/zorin-desktop-profiles/." "$HOME/.local/share/z
 # Escape characters that are meaningful in a sed replacement.
 escaped_home=$(printf '%s' "$HOME" | sed 's/[&|\\]/\\&/g')
 sed -i "s|@HOME@|$escaped_home|g" \
+    "$HOME/.local/share/applications/zorin-profile-android-emulator.desktop" \
     "$HOME/.local/share/applications/zorin-profile-normal.desktop" \
     "$HOME/.local/share/applications/zorin-profile-tiling.desktop" \
     "$HOME/.local/share/gnome-shell/extensions/paperwm-numbered-workspaces@urkel.local/extension.js"
 
 chmod 755 "$HOME/.local/bin/zorin-desktop-profile"
+chmod 755 "$HOME/.local/bin/paperwm-android-emulator-toolbar"
 
 for schema_dir in \
     "$HOME/.local/share/gnome-shell/extensions/zorin-menu-super-space@urkel.local/schemas" \

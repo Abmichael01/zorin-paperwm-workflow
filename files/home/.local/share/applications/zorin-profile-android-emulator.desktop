@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Tile Android Emulator Controls
+Comment=Make the Android Emulator side toolbar an independent PaperWM window
+Exec=@HOME@/.local/bin/paperwm-android-emulator-toolbar
+Icon=android-studio
+Terminal=false
+Categories=Development;Settings;
+StartupNotify=false
+
