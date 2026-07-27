@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Enable PaperWM Tiling
+Comment=Enable scrollable tiling with per-monitor workspace controls
+Exec=@HOME@/.local/bin/zorin-desktop-profile tiling
+Icon=preferences-system-windows
+Terminal=false
+Categories=Settings;DesktopSettings;
+StartupNotify=false

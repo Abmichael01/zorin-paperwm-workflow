@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PAPERWM_UUID='paperwm@paperwm.github.com'
+WSM_UUID='workspace-switcher-manager@G-dH.github.com'
+ZORIN_TILING_UUID='zorin-tiling-shell@zorinos.com'
+DING_UUID='zorin-desktop-icons@zorinos.com'
+SUPER_SPACE_UUID='zorin-menu-super-space@urkel.local'
+ZORIN_MENU_UUID='zorin-menu@zorinos.com'
+NUMBERED_WORKSPACES_UUID='paperwm-numbered-workspaces@urkel.local'
+PAPERWM_SCHEMA_DIR="$HOME/.local/share/gnome-shell/extensions/$PAPERWM_UUID/schemas"
+GESTURE_PROFILE_DIR="$HOME/.local/share/zorin-desktop-profiles/gesture-profiles"
+TOUCHEGG_CONFIG="$HOME/.config/touchegg/touchegg.conf"
+
+schema_exists() {
+    gsettings list-schemas | grep -Fxq "$1"
+}
+
+zorin_taskbar_set() {
+    if schema_exists org.gnome.shell.extensions.zorin-taskbar; then
+        gsettings set org.gnome.shell.extensions.zorin-taskbar "$1" "$2"
+    fi
+}
+
+zorin_taskbar_reset() {
+    if schema_exists org.gnome.shell.extensions.zorin-taskbar; then
+        gsettings reset org.gnome.shell.extensions.zorin-taskbar "$1"
+    fi
+}
+
+enable_extension() {
+    if gnome-extensions info "$1" >/dev/null 2>&1; then
+        gnome-extensions enable "$1" >/dev/null 2>&1 || true
+    fi
+}
+
+disable_extension() {
+    if gnome-extensions info "$1" >/dev/null 2>&1; then
+        gnome-extensions disable "$1" >/dev/null 2>&1 || true
+    fi
+}
+
+preserve_personal_shortcuts() {
+    gsettings set org.gnome.mutter overlay-key ""
+    gsettings set org.gnome.desktop.wm.keybindings close "['<Super>q', '<Alt>F4']"
+    gsettings set org.gnome.desktop.wm.keybindings switch-input-source "['XF86Keyboard']"
+    gsettings set org.gnome.desktop.wm.keybindings switch-input-source-backward "['<Shift>XF86Keyboard']"
+    gsettings set org.gnome.desktop.peripherals.touchpad click-method 'areas'
+    # Super+Space is Zorin-specific; do not capture it on standard GNOME.
+    if gnome-extensions info "$ZORIN_MENU_UUID" >/dev/null 2>&1; then
+        enable_extension "$SUPER_SPACE_UUID"
+    else
+        disable_extension "$SUPER_SPACE_UUID"
+    fi
+}
+
+normal_profile() {
+    disable_extension "$NUMBERED_WORKSPACES_UUID"
+    disable_extension "$PAPERWM_UUID"
+    disable_extension "$WSM_UUID"
+    disable_extension "$ZORIN_TILING_UUID"
+
+    gsettings set org.gnome.mutter dynamic-workspaces true
+    gsettings set org.gnome.mutter workspaces-only-on-primary true
+    gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
+    gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-1 "['<Super>Home']"
+    gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-1 "['<Super><Shift>Home']"
+    for number in 2 3 4; do
+        gsettings set org.gnome.desktop.wm.keybindings "switch-to-workspace-$number" '[]'
+        gsettings set org.gnome.desktop.wm.keybindings "move-to-workspace-$number" '[]'
+    done
+
+    zorin_taskbar_set hot-keys true
+    for number in $(seq 1 9); do
+        gsettings reset org.gnome.shell.keybindings "switch-to-application-$number"
+        gsettings reset org.gnome.shell.keybindings "open-new-window-application-$number"
+    done
+    for number in $(seq 1 10); do
+        for prefix in app-hotkey app-hotkey-kp app-ctrl-hotkey app-ctrl-hotkey-kp app-shift-hotkey app-shift-hotkey-kp; do
+            zorin_taskbar_reset "$prefix-$number"
+        done
+    done
+    zorin_taskbar_set intellihide-persisted-state 0
+    zorin_taskbar_set intellihide false
+    zorin_taskbar_set intellihide true
+    preserve_personal_shortcuts
+    enable_extension "$DING_UUID"
+    if test -f "$GESTURE_PROFILE_DIR/normal-zorin-touchegg.conf"; then
+        cp "$GESTURE_PROFILE_DIR/normal-zorin-touchegg.conf" "$TOUCHEGG_CONFIG"
+    fi
+    enable_extension 'x11gestures@joseexposito.github.io'
+
+    notify-send 'Desktop profile' 'Normal Zorin restored.'
+}
+
+paperwm_profile() {
+    disable_extension "$NUMBERED_WORKSPACES_UUID"
+    disable_extension "$WSM_UUID"
+    disable_extension "$ZORIN_TILING_UUID"
+    disable_extension "$DING_UUID"
+
+    gsettings set org.gnome.mutter dynamic-workspaces true
+    gsettings set org.gnome.mutter workspaces-only-on-primary false
+    for number in $(seq 1 9); do
+        gsettings set org.gnome.desktop.wm.keybindings "switch-to-workspace-$number" '[]'
+        gsettings set org.gnome.desktop.wm.keybindings "move-to-workspace-$number" '[]'
+    done
+
+    if test -d "$PAPERWM_SCHEMA_DIR"; then
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm minimap-scale 0.0
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm window-switcher-preview-scale 0.0
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm edge-preview-enable false
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm show-window-position-bar false
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-up "['<Super>Up']"
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-down "['<Super>Down']"
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-up-workspace "['<Super>Page_Up', '<Super>KP_Prior']"
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-down-workspace "['<Super>Page_Down', '<Super>KP_Next']"
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-up-workspace-from-all-monitors '[]'
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings switch-down-workspace-from-all-monitors '[]'
+        GSETTINGS_SCHEMA_DIR="$PAPERWM_SCHEMA_DIR" gsettings set org.gnome.shell.extensions.paperwm.keybindings toggle-scratch "['<Control><Super>t']"
+    fi
+
+    preserve_personal_shortcuts
+    zorin_taskbar_set hot-keys false
+    for number in $(seq 1 9); do
+        gsettings set org.gnome.shell.keybindings "switch-to-application-$number" '[]'
+        gsettings set org.gnome.shell.keybindings "open-new-window-application-$number" '[]'
+    done
+    for number in $(seq 1 10); do
+        for prefix in app-hotkey app-hotkey-kp app-ctrl-hotkey app-ctrl-hotkey-kp app-shift-hotkey app-shift-hotkey-kp; do
+            zorin_taskbar_set "$prefix-$number" '[]'
+        done
+    done
+    zorin_taskbar_set intellihide-persisted-state 0
+    zorin_taskbar_set intellihide false
+    zorin_taskbar_set intellihide true
+    disable_extension 'x11gestures@joseexposito.github.io'
+    if test -f "$GESTURE_PROFILE_DIR/paperwm-touchegg.conf"; then
+        cp "$GESTURE_PROFILE_DIR/paperwm-touchegg.conf" "$TOUCHEGG_CONFIG"
+    fi
+    enable_extension "$PAPERWM_UUID"
+    enable_extension "$NUMBERED_WORKSPACES_UUID"
+
+    notify-send 'Desktop profile' 'PaperWM tiling enabled. Super + 1–9 selects the focused monitor workspace.'
+}
+
+status_profile() {
+    printf 'PaperWM: '
+    gnome-extensions info "$PAPERWM_UUID" 2>/dev/null | sed -n 's/^  Enabled: /enabled=/p'
+    printf 'Dynamic workspaces: '
+    gsettings get org.gnome.mutter dynamic-workspaces
+    printf 'Workspaces only on primary: '
+    gsettings get org.gnome.mutter workspaces-only-on-primary
+}
+
+case "${1:-}" in
+    normal) normal_profile ;;
+    tiling) paperwm_profile ;;
+    status) status_profile ;;
+    *)
+        printf 'Usage: %s {normal|tiling|status}\n' "$0" >&2
+        exit 2
+        ;;
+esac

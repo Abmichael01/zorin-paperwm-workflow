@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Restore Normal Zorin
+Comment=Restore the saved stable Zorin desktop profile
+Exec=@HOME@/.local/bin/zorin-desktop-profile normal
+Icon=preferences-desktop
+Terminal=false
+Categories=Settings;DesktopSettings;
+StartupNotify=false

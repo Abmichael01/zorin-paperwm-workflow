@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.zorin-menu-super-space"
+          path="/org/gnome/shell/extensions/zorin-menu-super-space/">
+    <key name="toggle-zorin-menu" type="as">
+      <default><![CDATA[['<Super>space']]]></default>
+      <summary>Toggle Zorin Menu</summary>
+    </key>
+  </schema>
+</schemalist>

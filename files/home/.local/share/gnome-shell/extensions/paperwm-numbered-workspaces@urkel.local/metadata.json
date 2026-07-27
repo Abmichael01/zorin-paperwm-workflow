@@ -1,0 +1,8 @@
+{
+  "uuid": "paperwm-numbered-workspaces@urkel.local",
+  "name": "PaperWM Numbered Workspaces",
+  "description": "Switch directly to numbered PaperWM workspaces on the focused monitor.",
+  "shell-version": ["46"],
+  "settings-schema": "org.gnome.shell.extensions.paperwm-numbered-workspaces",
+  "version": 1
+}

@@ -1,0 +1,8 @@
+{
+  "uuid": "zorin-menu-super-space@urkel.local",
+  "name": "Zorin Menu Super Space",
+  "description": "Toggle Zorin Menu directly with Super+Space.",
+  "shell-version": ["46", "47", "48"],
+  "settings-schema": "org.gnome.shell.extensions.zorin-menu-super-space",
+  "version": 1
+}
