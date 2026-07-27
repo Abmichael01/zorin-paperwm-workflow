@@ -11,6 +11,7 @@ ZORIN_MENU_UUID='zorin-menu@zorinos.com'
 NUMBERED_WORKSPACES_UUID='paperwm-numbered-workspaces@urkel.local'
 PAPERWM_SCHEMA_DIR="$HOME/.local/share/gnome-shell/extensions/$PAPERWM_UUID/schemas"
 GESTURE_PROFILE_DIR="$HOME/.local/share/zorin-desktop-profiles/gesture-profiles"
+ORIGINAL_GESTURE_CONFIG="$HOME/.local/share/zorin-desktop-profiles/user-backups/touchegg.conf"
 TOUCHEGG_CONFIG="$HOME/.config/touchegg/touchegg.conf"
 
 schema_exists() {
@@ -86,7 +87,9 @@ normal_profile() {
     zorin_taskbar_set intellihide true
     preserve_personal_shortcuts
     enable_extension "$DING_UUID"
-    if test -f "$GESTURE_PROFILE_DIR/normal-zorin-touchegg.conf"; then
+    if test -f "$ORIGINAL_GESTURE_CONFIG"; then
+        cp "$ORIGINAL_GESTURE_CONFIG" "$TOUCHEGG_CONFIG"
+    elif test -f "$GESTURE_PROFILE_DIR/normal-zorin-touchegg.conf"; then
         cp "$GESTURE_PROFILE_DIR/normal-zorin-touchegg.conf" "$TOUCHEGG_CONFIG"
     fi
     enable_extension 'x11gestures@joseexposito.github.io'

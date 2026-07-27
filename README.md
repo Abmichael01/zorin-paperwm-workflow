@@ -15,6 +15,10 @@ Zorin desktop.
 - Touchégg gesture profiles
 - **Enable PaperWM Tiling** and **Restore Normal Zorin** application launchers
 
+Before changing gestures, the installer saves an existing Touchégg configuration
+under `~/.local/share/zorin-desktop-profiles/user-backups/`. The Normal profile
+restores that saved file.
+
 The extensions are included in this repository. You do not need Extension
 Manager to download them separately.
 
@@ -95,8 +99,8 @@ Run this from the application menu or terminal:
 
 It disables PaperWM and its companion, restores Zorin taskbar number shortcuts,
 enables desktop icons and X11 Gestures when those extensions exist, and restores
-the included normal gesture profile. This is an opinionated Zorin profile, not
-a byte-for-byte backup of another person's previous GNOME settings.
+the user's pre-install Touchégg file when one was found. Other GNOME settings use
+an opinionated Zorin profile rather than a byte-for-byte desktop backup.
 
 ## Controls
 

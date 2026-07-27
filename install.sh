@@ -4,6 +4,9 @@ set -euo pipefail
 
 PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_HOME="$PACKAGE_DIR/files/home"
+PROFILE_DIR="$HOME/.local/share/zorin-desktop-profiles"
+TOUCHEGG_CONFIG="$HOME/.config/touchegg/touchegg.conf"
+TOUCHEGG_BACKUP="$PROFILE_DIR/user-backups/touchegg.conf"
 
 if [[ "${1:-}" == "--install-deps" ]]; then
     if ! command -v apt-get >/dev/null 2>&1; then
@@ -23,14 +26,17 @@ mkdir -p \
     "$HOME/.local/bin" \
     "$HOME/.local/share/applications" \
     "$HOME/.local/share/gnome-shell/extensions" \
-    "$HOME/.local/share/zorin-desktop-profiles" \
+    "$PROFILE_DIR/user-backups" \
     "$HOME/.config/touchegg"
+
+if test -f "$TOUCHEGG_CONFIG" && ! test -f "$TOUCHEGG_BACKUP"; then
+    cp -a "$TOUCHEGG_CONFIG" "$TOUCHEGG_BACKUP"
+fi
 
 cp -a "$SOURCE_HOME/.local/bin/." "$HOME/.local/bin/"
 cp -a "$SOURCE_HOME/.local/share/applications/." "$HOME/.local/share/applications/"
 cp -a "$SOURCE_HOME/.local/share/gnome-shell/extensions/." "$HOME/.local/share/gnome-shell/extensions/"
 cp -a "$SOURCE_HOME/.local/share/zorin-desktop-profiles/." "$HOME/.local/share/zorin-desktop-profiles/"
-cp -a "$SOURCE_HOME/.config/touchegg/." "$HOME/.config/touchegg/"
 
 # The desktop launchers and companion extension need the real home directory.
 # Escape characters that are meaningful in a sed replacement.
