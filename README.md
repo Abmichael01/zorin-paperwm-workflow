@@ -1,9 +1,24 @@
 # Zorin PaperWM Workflow
 
-A reproducible, switchable PaperWM desktop profile for Zorin OS. It provides
-scrollable tiling, numbered workspaces on the focused monitor, touchpad
-gestures, and one-click launchers for switching between PaperWM and a normal
-Zorin desktop.
+A reproducible, switchable PaperWM desktop profile that makes Zorin GNOME feel
+more like [Niri](https://github.com/YaLTeR/niri). It is for people who love
+Niri's scrollable tiling workflow but want to keep using Zorin or GNOME instead
+of replacing their whole desktop session.
+
+It combines PaperWM with focused-monitor numbered workspaces, touchpad gestures,
+Niri-like keyboard controls, and one-click launchers for switching between the
+tiling workflow and a normal Zorin desktop.
+
+## Why this exists
+
+The goal is not to turn GNOME into Niri or claim complete feature parity. Niri
+is a separate Wayland compositor, while this project builds a similar everyday
+workflow on top of GNOME Shell and PaperWM. It packages the small extensions,
+conflict fixes, gestures, and profile switching that were needed to make that
+experience practical—especially on a multi-monitor Zorin setup.
+
+This is shared for anyone who wants the same Niri-like speed and spatial window
+management without migrating away from a familiar GNOME-based operating system.
 
 ## What it installs
 
