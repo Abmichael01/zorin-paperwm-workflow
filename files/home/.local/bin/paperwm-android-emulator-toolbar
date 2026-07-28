@@ -1,51 +1,97 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -uo pipefail
 
 PAPERWM_UUID='paperwm@paperwm.github.com'
 NUMBERED_UUID='paperwm-numbered-workspaces@urkel.local'
-converted=0
+LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/paperwm-android-emulator-toolbar-${UID}.lock"
 
-for window_id in $(xdotool search --class Emulator 2>/dev/null || true); do
-    map_state=$(xwininfo -id "$window_id" 2>/dev/null | awk -F: '/Map State/{gsub(/^ +/, "", $2); print $2; exit}')
-    width=$(xwininfo -id "$window_id" 2>/dev/null | awk -F: '/Width/{gsub(/^ +/, "", $2); print $2; exit}')
-    window_type=$(xprop -id "$window_id" _NET_WM_WINDOW_TYPE 2>/dev/null || true)
-    window_name=$(xprop -id "$window_id" _NET_WM_NAME 2>/dev/null || true)
+paperwm_active() {
+    gnome-extensions info "$PAPERWM_UUID" 2>/dev/null |
+        grep -Fq 'State: ACTIVE'
+}
 
-    if [[ "$map_state" != 'IsViewable' ]] ||
-       [[ ! "${width:-}" =~ ^[0-9]+$ ]] ||
-       (( width > 100 )) ||
-       [[ "$window_type" != *'_NET_WM_WINDOW_TYPE_UTILITY'* ]] ||
-       [[ "$window_name" != *'"Emulator"'* ]]; then
-        continue
-    fi
+convert_visible_toolbars() {
+    converted=0
 
-    # Qt may recreate WM_TRANSIENT_FOR when the state changes, so remove the
-    # state first and the parent relationship last.
-    xprop -id "$window_id" \
-        -f _NET_WM_WINDOW_TYPE 32a \
-        -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_NORMAL >/dev/null
-    xprop -id "$window_id" -remove _NET_WM_STATE >/dev/null
-    sleep 1
-    xprop -id "$window_id" -remove WM_TRANSIENT_FOR >/dev/null
+    for window_id in $(xdotool search --class Emulator 2>/dev/null || true); do
+        map_state=$(xwininfo -id "$window_id" 2>/dev/null |
+            awk -F: '/Map State/{gsub(/^ +/, "", $2); print $2; exit}')
+        width=$(xwininfo -id "$window_id" 2>/dev/null |
+            awk -F: '/Width/{gsub(/^ +/, "", $2); print $2; exit}')
+        window_type=$(xprop -id "$window_id" _NET_WM_WINDOW_TYPE 2>/dev/null || true)
+        window_name=$(xprop -id "$window_id" _NET_WM_NAME 2>/dev/null || true)
 
-    converted=$((converted + 1))
-done
+        if [[ "$map_state" != 'IsViewable' ]] ||
+           [[ ! "${width:-}" =~ ^[0-9]+$ ]] ||
+           (( width > 100 )) ||
+           [[ "$window_name" != *'"Emulator"'* ]]; then
+            continue
+        fi
 
-if (( converted == 0 )); then
-    notify-send 'PaperWM Android Emulator' \
-        'No visible Android Emulator side toolbar was found.'
-    exit 1
-fi
+        is_new_toolbar=false
+        if [[ "$window_type" == *'_NET_WM_WINDOW_TYPE_UTILITY'* ]]; then
+            xprop -id "$window_id" \
+                -f _NET_WM_WINDOW_TYPE 32a \
+                -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_NORMAL >/dev/null
+            is_new_toolbar=true
+        fi
 
-if gnome-extensions info "$PAPERWM_UUID" 2>/dev/null | grep -Fq 'State: ACTIVE'; then
+        # Qt can recreate ABOVE, STICKY, and WM_TRANSIENT_FOR after the first
+        # conversion. Enforce the clean state on every watcher pass.
+        xprop -id "$window_id" -remove _NET_WM_STATE >/dev/null
+        sleep 1
+        xprop -id "$window_id" -remove WM_TRANSIENT_FOR >/dev/null
+        xprop -id "$window_id" -remove _NET_WM_STATE >/dev/null
+
+        if [[ "$is_new_toolbar" == true ]]; then
+            converted=$((converted + 1))
+        fi
+    done
+}
+
+reload_paperwm() {
     gnome-extensions disable "$NUMBERED_UUID" >/dev/null 2>&1 || true
-    gnome-extensions disable "$PAPERWM_UUID" >/dev/null
+    gnome-extensions disable "$PAPERWM_UUID" >/dev/null 2>&1 || return
     sleep 1
-    gnome-extensions enable "$PAPERWM_UUID" >/dev/null
+    gnome-extensions enable "$PAPERWM_UUID" >/dev/null 2>&1 || return
     sleep 2
     gnome-extensions enable "$NUMBERED_UUID" >/dev/null 2>&1 || true
-fi
+}
 
-notify-send 'PaperWM Android Emulator' \
-    "Converted $converted emulator toolbar window(s) into independent PaperWM windows."
+apply_conversion() {
+    paperwm_active || return 0
+    convert_visible_toolbars
+
+    if (( converted > 0 )); then
+        reload_paperwm
+        notify-send 'PaperWM Android Emulator' \
+            "Converted $converted emulator toolbar window(s) into independent PaperWM windows."
+        return 0
+    fi
+
+    return 1
+}
+
+case "${1:---once}" in
+    --watch)
+        exec 9>"$LOCK_FILE"
+        flock -n 9 || exit 0
+
+        while true; do
+            apply_conversion || true
+            sleep 2
+        done
+        ;;
+    --once)
+        if ! apply_conversion; then
+            notify-send 'PaperWM Android Emulator' \
+                'No visible Android Emulator side toolbar was found.'
+            exit 1
+        fi
+        ;;
+    *)
+        printf 'Usage: %s [--once|--watch]\n' "$0" >&2
+        exit 2
+        ;;
+esac

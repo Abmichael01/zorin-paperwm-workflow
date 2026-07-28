@@ -160,8 +160,12 @@ layout before relying on it for daily work.
 
 The standalone Android Emulator exposes its narrow controls as a sticky,
 always-on-top utility window attached to the phone. PaperWM normally excludes
-that kind of window. After the emulator is open, launch **Tile Android Emulator
-Controls** from the application menu or run:
+that kind of window. The installer starts a small session watcher automatically.
+Whenever PaperWM is active and a new emulator toolbar appears, the watcher
+converts it within a few seconds and reloads PaperWM.
+
+No manual action is normally required. To apply it immediately or retry, launch
+**Tile Android Emulator Controls** from the application menu or run:
 
 ```bash
 ~/.local/bin/paperwm-android-emulator-toolbar
@@ -170,8 +174,8 @@ Controls** from the application menu or run:
 The helper targets only a visible Android `Emulator` utility window no wider
 than 100 pixels. It converts that toolbar to a normal window, removes its parent
 relationship, and reloads PaperWM so the phone and controls can be selected and
-reordered separately. Restarting the emulator restores Android's original
-attached-toolbar behavior.
+reordered separately. Android restores its attached-toolbar properties whenever
+the emulator starts; the watcher automatically reapplies the conversion.
 
 This is an X11-specific workaround tested with Android Emulator 36.6.11. It is
 experimental because a future emulator release may change its Qt window

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=PaperWM Android Emulator Toolbar Watcher
+Comment=Automatically tile Android Emulator side controls with PaperWM
+Exec=@HOME@/.local/bin/paperwm-android-emulator-toolbar --watch
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+

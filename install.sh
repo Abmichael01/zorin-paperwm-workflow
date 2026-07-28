@@ -27,6 +27,7 @@ mkdir -p \
     "$HOME/.local/share/applications" \
     "$HOME/.local/share/gnome-shell/extensions" \
     "$PROFILE_DIR/user-backups" \
+    "$HOME/.config/autostart" \
     "$HOME/.config/touchegg"
 
 if test -f "$TOUCHEGG_CONFIG" && ! test -f "$TOUCHEGG_BACKUP"; then
@@ -37,11 +38,13 @@ cp -a "$SOURCE_HOME/.local/bin/." "$HOME/.local/bin/"
 cp -a "$SOURCE_HOME/.local/share/applications/." "$HOME/.local/share/applications/"
 cp -a "$SOURCE_HOME/.local/share/gnome-shell/extensions/." "$HOME/.local/share/gnome-shell/extensions/"
 cp -a "$SOURCE_HOME/.local/share/zorin-desktop-profiles/." "$HOME/.local/share/zorin-desktop-profiles/"
+cp -a "$SOURCE_HOME/.config/autostart/." "$HOME/.config/autostart/"
 
 # The desktop launchers and companion extension need the real home directory.
 # Escape characters that are meaningful in a sed replacement.
 escaped_home=$(printf '%s' "$HOME" | sed 's/[&|\\]/\\&/g')
 sed -i "s|@HOME@|$escaped_home|g" \
+    "$HOME/.config/autostart/paperwm-android-emulator-toolbar.desktop" \
     "$HOME/.local/share/applications/zorin-profile-android-emulator.desktop" \
     "$HOME/.local/share/applications/zorin-profile-normal.desktop" \
     "$HOME/.local/share/applications/zorin-profile-tiling.desktop" \
